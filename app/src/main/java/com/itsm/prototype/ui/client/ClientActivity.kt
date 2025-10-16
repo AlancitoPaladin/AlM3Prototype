@@ -22,7 +22,6 @@ class ClientActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Setup data binding
         binding = DataBindingUtil.setContentView(this, R.layout.activity_client)
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
