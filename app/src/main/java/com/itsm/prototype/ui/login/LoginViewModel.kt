@@ -13,7 +13,6 @@ class LoginViewModel(
     val email = MutableLiveData("")
     val password = MutableLiveData("")
 
-    // UI state
     private val _loginState = MutableLiveData<LoginState>()
     val loginState: LiveData<LoginState> = _loginState
 
@@ -33,8 +32,6 @@ class LoginViewModel(
 
         _isLoading.value = true
 
-        // Simulate network delay (remove in production)
-        // In real app, call repository here
         performLogin(emailValue, passwordValue)
     }
 

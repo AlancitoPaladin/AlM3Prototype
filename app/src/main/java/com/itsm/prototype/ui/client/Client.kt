@@ -12,7 +12,6 @@ class Client(
 
     override fun getUserType(): String = "CLIENT"
 
-    // Métodos específicos para el cliente
     fun getShippingAddress(): String = shippingAddress
 
     fun setShippingAddress(address: String) {
@@ -27,9 +26,7 @@ class Client(
 
     fun getTotalPurchases(): Int = purchaseHistory.size
 
-    // Método para comprar un modelo
     fun buyModel(modelId: String, price: Double): Boolean {
-        // Add your purchase logic here
         addPurchase(modelId)
         return true
     }

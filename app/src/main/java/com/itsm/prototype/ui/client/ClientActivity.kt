@@ -47,14 +47,11 @@ class ClientActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        // Observe client data
         viewModel.client.observe(this) { client ->
             binding.clientName = client.getName()
         }
 
-        // Observe models list
         viewModel.models.observe(this) { models ->
-            // TODO: Setup RecyclerView adapter
             // Example:
             // val adapter = ModelsAdapter(models) { model ->
             //     viewModel.buyModel(model.id, model.price)
@@ -62,7 +59,6 @@ class ClientActivity : AppCompatActivity() {
             // binding.recyclerViewModels.adapter = adapter
         }
 
-        // Observe purchase state
         viewModel.purchaseState.observe(this) { state ->
             when (state) {
                 is PurchaseState.Success -> {
@@ -77,16 +73,14 @@ class ClientActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        // Setup toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Panel del Cliente"
 
-        // Setup logout button
         binding.btnLogout.setOnClickListener {
             logout()
         }
 
-        // TODO: Setup RecyclerView
+
         // binding.recyclerViewModels.layoutManager = LinearLayoutManager(this)
     }
 

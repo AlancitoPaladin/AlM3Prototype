@@ -41,7 +41,7 @@ class SellerActivity : AppCompatActivity() {
         }
 
         viewModel.myModels.observe(this) { models ->
-            // TODO: Setup RecyclerView adapter
+
         }
 
         viewModel.createModelState.observe(this) { state ->

@@ -13,8 +13,7 @@ class Seller(
 ) : User(name, email, password) {
 
     override fun getUserType(): String = "SELLER"
-
-    // Métodos específicos para el vendedor
+    
     fun getStoreName(): String = storeName
 
     fun setStoreName(name: String) {
@@ -45,7 +44,6 @@ class Seller(
         totalSales++
     }
 
-    // Método para crear un nuevo modelo
     fun createModel(modelName: String, price: Double, description: String): String {
         // Add your model creation logic here
         val modelId = "MODEL_${System.currentTimeMillis()}"

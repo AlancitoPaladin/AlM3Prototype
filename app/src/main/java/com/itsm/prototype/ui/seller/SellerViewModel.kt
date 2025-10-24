@@ -18,7 +18,6 @@ class SellerViewModel @Inject constructor() : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // Fields for creating a new model
     val modelName = MutableLiveData("")
     val modelDescription = MutableLiveData("")
     val modelPrice = MutableLiveData("")
@@ -26,7 +25,7 @@ class SellerViewModel @Inject constructor() : ViewModel() {
     fun loadSellerData(email: String) {
         _isLoading.value = true
 
-        // TODO: Load from repository/API
+
         val seller = Seller(
             name = "Vendedor Demo",
             email = email,
@@ -39,7 +38,6 @@ class SellerViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun loadMyModels() {
-        // TODO: Load from repository/API
         val sellerModels = _seller.value?.getModels()?.map { modelId ->
             ModelItem(modelId, "Modelo $modelId", "Descripción", 29.99)
         } ?: emptyList()
@@ -65,13 +63,11 @@ class SellerViewModel @Inject constructor() : ViewModel() {
         if (currentSeller != null) {
             val modelId = currentSeller.createModel(name, price, description)
 
-            // Refresh the list
             loadMyModels()
 
             _isLoading.value = false
             _createModelState.value = CreateModelState.Success("¡Modelo creado exitosamente!")
 
-            // Clear fields
             clearModelFields()
         }
     }
