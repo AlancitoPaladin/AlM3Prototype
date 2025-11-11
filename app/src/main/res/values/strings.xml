@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Prototype</string>
+    <string name="logo">Logo</string>
+    <string name="welcome">Bienvenido</string>
+    <string name="Ingresar">Ingrese para continuar</string>
+    <string name="signUp">¿No tienes cuenta? Regístrate</string>
+    <string name="sign_in">Ingresar</string>
+    <string name="continuar">O continua con</string>
+    <string name="email">Email</string>
+    <string name="password">Contraseña</string>
+    <string name="google">Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="close_sesion">Cerrar Sesión</string>
+    <string name="create_model">Crear Nuevo Modelo</string>
+    <string name="model_name">Nombre del modelo</string>
+    <string name="description">Descripción</string>
+    <string name="price">Precio</string>
+    <string name="create">Crear modelo</string>
+    <string name="my_model">Mis modelos</string>
+</resources>
