@@ -47,9 +47,6 @@ class ClientActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.client.observe(this) { client ->
-            binding.clientName = client.getName()
-        }
 
         viewModel.models.observe(this) { models ->
             // Example:

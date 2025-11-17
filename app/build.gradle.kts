@@ -61,4 +61,5 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.glide)
+    implementation(libs.bundles.filament)
 }

@@ -3,7 +3,9 @@ package com.itsm.prototype.ui.login
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.itsm.prototype.data.UserRepository
+import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val repository: UserRepository = UserRepository()
@@ -15,8 +17,8 @@ class LoginViewModel(
     private val _loginState = MutableLiveData<LoginState>()
     val loginState: LiveData<LoginState> = _loginState
 
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> = _errorMessage
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -25,12 +27,9 @@ class LoginViewModel(
         val emailValue = email.value.orEmpty()
         val passwordValue = password.value.orEmpty()
 
-        if (!validateInput(emailValue, passwordValue)) {
-            return
-        }
+        if (!validateInput(emailValue, passwordValue)) return
 
         _isLoading.value = true
-
         performLogin(emailValue, passwordValue)
     }
 
@@ -50,20 +49,26 @@ class LoginViewModel(
     }
 
     private fun performLogin(email: String, password: String) {
-        // TODO: Replace with actual API call
-        val userType = determineUserType(email)
+        viewModelScope.launch {
+            _loginState.value = LoginState.Loading
 
-        _isLoading.value = false
-        _loginState.value = LoginState.Success(userType, email)
-    }
+            repository.login(email, password)
+                .onSuccess { response ->
+                    _isLoading.value = false
 
-    private fun determineUserType(email: String): String {
-        return if (email.contains("seller", ignoreCase = true) ||
-            email.contains("vendedor", ignoreCase = true)
-        ) {
-            "SELLER"
-        } else {
-            "CLIENT"
+                    val user = response.user
+                    val userType = user.role.uppercase()
+
+                    _loginState.value = LoginState.Success(
+                        userType = userType,
+                        email = user.email
+                    )
+                }
+                .onFailure { error ->
+                    _isLoading.value = false
+                    _loginState.value =
+                        LoginState.Error(error.message ?: "Error desconocido")
+                }
         }
     }
 }

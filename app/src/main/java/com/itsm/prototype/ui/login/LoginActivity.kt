@@ -2,6 +2,7 @@ package com.itsm.prototype.ui.login
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +28,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        viewModel.isLoading.observe(this) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
         viewModel.loginState.observe(this) { state ->
             when (state) {
                 is LoginState.Success -> {
@@ -38,12 +43,8 @@ class LoginActivity : AppCompatActivity() {
                 is LoginState.Error -> {
                     showToast(state.message)
                 }
-            }
-        }
 
-        viewModel.errorMessage.observe(this) { message ->
-            message?.let {
-                showToast(it)
+                else -> {}
             }
         }
     }

@@ -2,6 +2,8 @@ package com.itsm.prototype.api
 
 import com.itsm.prototype.data.LoginRequest
 import com.itsm.prototype.data.LoginResponse
+import com.itsm.prototype.ui.login.RegisterRequest
+import com.itsm.prototype.ui.login.RegisterResponse
 import com.itsm.prototype.ui.upload.UploadResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -13,6 +15,9 @@ import retrofit2.http.Part
 interface ApiService {
     @POST("login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    @POST("/register")
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
     @Multipart
     @POST("upload")

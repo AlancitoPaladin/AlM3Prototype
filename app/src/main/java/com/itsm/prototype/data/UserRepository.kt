@@ -1,85 +1,68 @@
 package com.itsm.prototype.data
 
-import com.itsm.prototype.ui.client.Client
-import com.itsm.prototype.ui.seller.Seller
-import kotlinx.coroutines.delay
+import com.itsm.prototype.api.ApiClient.apiService
+import com.itsm.prototype.ui.login.RegisterRequest
+import com.itsm.prototype.ui.login.RegisterResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class UserRepository {
+
     suspend fun login(email: String, password: String): Result<LoginResponse> {
-        // TODO: Replace with actual API call
-        val userType = if (email.contains("seller", ignoreCase = true)) {
-            "SELLER"
-        } else {
-            "CLIENT"
+        return try {
+            val response = withContext(Dispatchers.IO) {
+                apiService.login(LoginRequest(email, password))
+            }
+
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else if (response.code() == 401) {
+                Result.failure(Exception("Correo o contraseña inválida"))
+            } else {
+                Result.failure(Exception("Error del servidor (${response.code()})"))
+            }
+
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-
-        return Result.success(
-            LoginResponse(
-                success = true,
-                userType = userType,
-                email = email,
-                message = "Login exitoso"
-            )
-        )
     }
 
-    suspend fun getClientData(email: String): Result<Client> {
-        delay(500)
-
-        // TODO: Replace with actual API call
-        val client = Client(
-            name = "Cliente Demo",
-            email = email,
-            password = ""
-        )
-
-        return Result.success(client)
-    }
-
-    suspend fun getSellerData(email: String): Result<Seller> {
-        delay(500)
-
-        // TODO: Replace with actual API call
-        val seller = Seller(
-            name = "Vendedor Demo",
-            email = email,
-            password = "",
-            storeName = "Mi Tienda 3D"
-        )
-
-        return Result.success(seller)
-    }
-
-    suspend fun getAvailableModels(): Result<List<ModelData>> {
-        delay(500)
-
-        // TODO: Replace with actual API call
-        val models = listOf(
-            ModelData("1", "Model 3D Silla", "Silla moderna", 29.99, ""),
-            ModelData("2", "Model 3D Mesa", "Mesa de madera", 49.99, ""),
-            ModelData("3", "Model 3D Lámpara", "Lámpara decorativa", 19.99, "")
-        )
-
-        return Result.success(models)
-    }
-
-    suspend fun createModel(
+    suspend fun register(
         name: String,
-        description: String,
-        price: Double,
-        sellerId: String
-    ): Result<ModelData> {
-        delay(1000)
+        lastName: String,
+        secondName: String? = null,
+        email: String,
+        password: String,
+        role: String
+    ): Result<RegisterResponse> = withContext(Dispatchers.IO) {
+        try {
+            val request = RegisterRequest(
+                name = name,
+                lastName = lastName,
+                secondName = secondName,
+                email = email,
+                password = password,
+                role = role
+            )
 
-        // TODO: Replace with actual API call
-        val model = ModelData(
-            id = "MODEL_${System.currentTimeMillis()}",
-            name = name,
-            description = description,
-            price = price,
-            imageUrl = ""
-        )
+            val response = apiService.register(request)
 
-        return Result.success(model)
+            if (response.isSuccessful) {
+                val registerResponse = response.body()
+                Result.success(registerResponse ?: RegisterResponse("Registro exitoso"))
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = when (response.code()) {
+                    409 -> "Correo ya registrado"
+                    400 -> "Datos inválidos"
+                    500 -> "Error interno del servidor"
+                    else -> errorBody ?: "Error desconocido"
+                }
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
+
 }

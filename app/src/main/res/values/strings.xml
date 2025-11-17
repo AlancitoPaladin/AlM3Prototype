@@ -17,4 +17,13 @@
     <string name="price">Precio</string>
     <string name="create">Crear modelo</string>
     <string name="my_model">Mis modelos</string>
+    <string name="create_account">Crear una cuenta</string>
+    <string name="complete_fields">Llena los siguientes campos</string>
+    <string name="nombre">Nombre</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="role">Selecciona tu rol</string>
+    <string name="sign_up">Registrar\n¿</string>
+    <string name="already_have_account">¿Tienes una cuenta?</string>
+    <string name="last_name">Primer apellido</string>
+    <string name="second_name_optional">Segundo apellido\n</string>
 </resources>
