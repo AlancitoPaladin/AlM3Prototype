@@ -5,10 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itsm.prototype.data.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(
-    private val repository: UserRepository = UserRepository()
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: UserRepository
 ) : ViewModel() {
 
     val email = MutableLiveData("")

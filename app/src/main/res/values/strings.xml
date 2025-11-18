@@ -19,11 +19,14 @@
     <string name="my_model">Mis modelos</string>
     <string name="create_account">Crear una cuenta</string>
     <string name="complete_fields">Llena los siguientes campos</string>
-    <string name="nombre">Nombre</string>
+    <string name="name">Nombre</string>
     <string name="confirm_password">Confirmar contraseña</string>
     <string name="role">Selecciona tu rol</string>
     <string name="sign_up">Registrar\n¿</string>
     <string name="already_have_account">¿Tienes una cuenta?</string>
     <string name="last_name">Primer apellido</string>
     <string name="second_name_optional">Segundo apellido\n</string>
+    <string name="star_symbol">★</string>
+    <string name="select_image_and_create">Seleccionar imagen y crear</string>
+    <string name="image_preview">Vista previa de imagen</string>
 </resources>

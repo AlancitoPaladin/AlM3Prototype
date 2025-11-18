@@ -12,7 +12,9 @@ import com.itsm.prototype.R
 import com.itsm.prototype.databinding.ActivityLoginBinding
 import com.itsm.prototype.ui.client.ClientActivity
 import com.itsm.prototype.ui.seller.SellerActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding

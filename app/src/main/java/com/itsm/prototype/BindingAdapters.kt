@@ -3,6 +3,8 @@ package com.itsm.prototype
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.BindingAdapter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 object BindingAdapters {
     @JvmStatic
@@ -14,8 +16,14 @@ object BindingAdapters {
     @JvmStatic
     @BindingAdapter("imageUrl")
     fun loadImage(view: ImageView, url: String?) {
-        // TODO: Use Glide or Coil to load images
-        // Glide.with(view.context).load(url).into(view)
+        if (!url.isNullOrEmpty()) {
+            Glide.with(view.context)
+                .load(url)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_error)
+                .into(view)
+        }
     }
 
     @JvmStatic

@@ -3,12 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="viewModel"
             type="com.itsm.prototype.ui.seller.SellerViewModel" />
+
         <variable
             name="sellerName"
             type="String" />
+
         <variable
             name="storeName"
             type="String" />
@@ -169,14 +172,12 @@
                                 android:textColor="@android:color/white" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Create Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCreateModel"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
-                            android:onClick="@{() -> viewModel.createModel()}"
-                            android:text="@string/create"
+                            android:text="@string/select_image_and_create"
                             app:cornerRadius="12dp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -203,9 +204,9 @@
                     android:id="@+id/recyclerViewMyModels"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
                     android:layout_marginTop="16dp"
                     android:nestedScrollingEnabled="false"
+                    android:textColor="@android:color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/myModelsTitle" />
