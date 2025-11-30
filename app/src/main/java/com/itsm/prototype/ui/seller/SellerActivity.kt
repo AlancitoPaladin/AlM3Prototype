@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,9 +17,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.databinding.DataBindingUtil
-import com.bumptech.glide.Glide
 import com.itsm.prototype.R
 import com.itsm.prototype.databinding.ActivitySellerBinding
+import com.itsm.prototype.model.ModelsAdapter
+import com.itsm.prototype.model.ModelsLoadingState
 import com.itsm.prototype.ui.login.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
@@ -32,10 +34,12 @@ class SellerActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySellerBinding
     private val viewModel: SellerViewModel by viewModels()
 
+    private lateinit var modelsAdapter: ModelsAdapter
+    private var currentUserId: String = ""
+
     private lateinit var currentPhotoUri: Uri
     private var selectedImageUri: Uri? = null
 
-    // Photo Picker (Android 13+)
     private val photoPickerLauncher = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
@@ -67,7 +71,6 @@ class SellerActivity : AppCompatActivity() {
         }
     }
 
-    // Permiso de cámara
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -85,37 +88,73 @@ class SellerActivity : AppCompatActivity() {
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
 
+        setupRecyclerView()
         loadUserData()
         observeViewModel()
         setupUI()
     }
 
+    private fun setupRecyclerView() {
+        modelsAdapter = ModelsAdapter { model ->
+            showToast("Modelo: ${model.name}")
+            // TODO: Navegar a pantalla de detalle/edición
+        }
+
+        binding.recyclerViewMyModels.apply {
+            adapter = modelsAdapter
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@SellerActivity)
+        }
+    }
+
     private fun loadUserData() {
+        val userId = intent.getStringExtra("userId")
+        val userEmail = intent.getStringExtra("userEmail")
+        val userName = intent.getStringExtra("userName")
+
         val prefs = getSharedPreferences("session", MODE_PRIVATE)
-        val email = prefs.getString("userEmail", "") ?: ""
-        viewModel.loadSellerData(email)
+        val finalUserId = userId ?: prefs.getString("userId", "") ?: ""
+        val finalEmail = userEmail ?: prefs.getString("userEmail", "") ?: ""
+        val finalName = userName ?: prefs.getString("userName", "")
+
+        currentUserId = finalUserId
+
+        viewModel.loadSellerData(finalUserId, finalEmail, finalName)
     }
 
     private fun observeViewModel() {
+
         viewModel.seller.observe(this) { seller ->
             binding.sellerName = seller.name
             binding.storeName = seller.storeName
         }
 
-        viewModel.myModels.observe(this) { models ->
-            // TODO: Actualizar RecyclerView con modelos
+        viewModel.processingProgress.observe(this) { progress ->
+            binding.progressBarHorizontal.progress = progress
+            binding.tvProgressPercent.text = "$progress%"
         }
 
-        viewModel.createModelState.observe(this) { state ->
-            when (state) {
-                is CreateModelState.Success -> {
-                    showToast(state.message)
-                    // Limpiar campos después de crear
-                    viewModel.clearForm()
-                }
+        viewModel.processingStep.observe(this) { step ->
+            binding.tvProgressStep.text = step
+        }
 
-                is CreateModelState.Error -> {
-                    showToast(state.message)
+        viewModel.myModels.observe(this) { models ->
+            modelsAdapter.submitList(models)
+        }
+
+        viewModel.modelsLoadingState.observe(this) { state ->
+            when (state) {
+                is ModelsLoadingState.Loading -> {
+                    // Mostrar loading si quieres
+                }
+                is ModelsLoadingState.Success -> {
+                    if (state.count == 0) {
+                        showToast("No tienes modelos aún")
+                    } else {
+                        showToast("${state.count} modelos cargados")
+                    }
+                }
+                is ModelsLoadingState.Error -> {
+                    showToast("Error: ${state.message}")
                 }
             }
         }
@@ -123,27 +162,49 @@ class SellerActivity : AppCompatActivity() {
         viewModel.imageProcessingState.observe(this) { state ->
             when (state) {
                 is ImageProcessingState.Loading -> {
-                    showToast("Procesando imagen...")
+                    binding.progressCard.visibility = View.VISIBLE
+                    binding.btnCreateModel.isEnabled = false
+                    // NO mostrar el progressBar circular aquí
                 }
 
                 is ImageProcessingState.Success -> {
-                    showToast("Modelo 3D generado exitosamente")
-                    val detection = state.response.detection
-                    showToast("Objeto detectado: ${detection.`object`} (${detection.confidence})")
+                    binding.progressCard.visibility = View.GONE
+                    binding.btnCreateModel.isEnabled = true
+
+                    showToast("¡Modelo 3D generado!")
+                    state.response.detection?.let {
+                        showToast("Detectado: ${it.`object`} (${(it.confidence * 100).toInt()}%)")
+                    }
                 }
 
                 is ImageProcessingState.Error -> {
+                    binding.progressCard.visibility = View.GONE
+                    binding.btnCreateModel.isEnabled = true
                     showToast("Error: ${state.message}")
                 }
 
-                is ImageProcessingState.Idle -> {
+                is ImageProcessingState.Idle, null -> {
+                    binding.progressCard.visibility = View.GONE
+                    binding.btnCreateModel.isEnabled = true
                 }
+            }
+        }
 
-                null -> {
+        viewModel.createModelState.observe(this) { state ->
+            when (state) {
+                is CreateModelState.Success -> {
+                    showToast(state.message)
+                    viewModel.clearForm()
+
+                    viewModel.refreshModels(currentUserId)
+                }
+                is CreateModelState.Error -> {
+                    showToast(state.message)
                 }
             }
         }
     }
+
 
     private fun setupUI() {
         // Botón para crear modelo (ahora abre image picker)

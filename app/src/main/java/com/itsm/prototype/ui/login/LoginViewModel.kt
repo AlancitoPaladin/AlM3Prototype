@@ -60,17 +60,23 @@ class LoginViewModel @Inject constructor(
                     _isLoading.value = false
 
                     val user = response.user
-                    val userType = user.role.uppercase()
+
+                    val userType = when (user.role.lowercase()) {
+                        "vendedor" -> "SELLER"
+                        "cliente", "client" -> "CLIENT"
+                        else -> "CLIENT"
+                    }
 
                     _loginState.value = LoginState.Success(
                         userType = userType,
-                        email = user.email
+                        email = user.email,
+                        userId = user.id,
+                        userName = user.name
                     )
                 }
                 .onFailure { error ->
                     _isLoading.value = false
-                    _loginState.value =
-                        LoginState.Error(error.message ?: "Error desconocido")
+                    _loginState.value = LoginState.Error(error.message ?: "Error desconocido")
                 }
         }
     }

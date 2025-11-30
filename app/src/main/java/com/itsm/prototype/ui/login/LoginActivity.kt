@@ -37,33 +37,41 @@ class LoginActivity : AppCompatActivity() {
         viewModel.loginState.observe(this) { state ->
             when (state) {
                 is LoginState.Success -> {
-                    saveLoginSession(state.userType, state.email)
+                    saveLoginSession(state)
                     showToast("¡Bienvenido!")
-                    navigateToAppropriateActivity(state.userType)
+                    navigateToAppropriateActivity(state)
                 }
-
                 is LoginState.Error -> {
                     showToast(state.message)
                 }
-
                 else -> {}
             }
         }
     }
 
-    private fun saveLoginSession(userType: String, email: String) {
+    private fun saveLoginSession(state: LoginState.Success) {
         val prefs = getSharedPreferences("session", MODE_PRIVATE)
         prefs.edit {
             putBoolean("isLoggedIn", true)
-            putString("userType", userType)
-            putString("userEmail", email)
+            putString("userType", state.userType)
+            putString("userEmail", state.email)
+            putString("userId", state.userId)
+            state.userName?.let { putString("userName", it) }
         }
     }
 
-    private fun navigateToAppropriateActivity(userType: String) {
-        val intent = when (userType) {
-            "SELLER" -> Intent(this, SellerActivity::class.java)
-            "CLIENT" -> Intent(this, ClientActivity::class.java)
+    private fun navigateToAppropriateActivity(state: LoginState.Success) {
+        val intent = when (state.userType) {
+            "SELLER" -> Intent(this, SellerActivity::class.java).apply {
+                putExtra("userId", state.userId)
+                putExtra("userEmail", state.email)
+                state.userName?.let { putExtra("userName", it) }
+            }
+            "CLIENT" -> Intent(this, ClientActivity::class.java).apply {
+                putExtra("userId", state.userId)
+                putExtra("userEmail", state.email)
+                state.userName?.let { putExtra("userName", it) }
+            }
             else -> Intent(this, ClientActivity::class.java)
         }
         startActivity(intent)

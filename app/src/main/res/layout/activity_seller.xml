@@ -172,6 +172,67 @@
                                 android:textColor="@android:color/white" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/progressCard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="#60FFFFFF"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/modelPriceLayout">
+
+                            <androidx.constraintlayout.widget.ConstraintLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="16dp">
+
+                                <!-- Progress Text -->
+                                <TextView
+                                    android:id="@+id/tvProgressStep"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="Procesando..."
+                                    android:textColor="@android:color/white"
+                                    android:textSize="14sp"
+                                    app:layout_constraintEnd_toStartOf="@id/tvProgressPercent"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toTopOf="parent" />
+
+                                <!-- Progress Percentage -->
+                                <TextView
+                                    android:id="@+id/tvProgressPercent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0%"
+                                    android:textColor="@android:color/white"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintTop_toTopOf="parent" />
+
+                                <!-- Horizontal ProgressBar -->
+                                <ProgressBar
+                                    android:id="@+id/progressBarHorizontal"
+                                    style="@android:style/Widget.ProgressBar.Horizontal"
+                                    android:layout_width="0dp"
+                                    android:layout_height="8dp"
+                                    android:layout_marginTop="8dp"
+                                    android:max="100"
+                                    android:progress="0"
+                                    android:progressBackgroundTint="#40FFFFFF"
+                                    android:progressTint="@android:color/white"
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toBottomOf="@id/tvProgressStep" />
+
+                            </androidx.constraintlayout.widget.ConstraintLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCreateModel"
                             android:layout_width="0dp"
@@ -181,8 +242,7 @@
                             app:cornerRadius="12dp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/modelPriceLayout" />
-
+                            app:layout_constraintTop_toBottomOf="@id/progressCard" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -216,7 +276,6 @@
                     android:id="@+id/progressBar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:visibility="@{viewModel.isLoading ? android.view.View.VISIBLE : android.view.View.GONE}"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

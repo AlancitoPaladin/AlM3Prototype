@@ -1,120 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="#40FFFFFF"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
-    <data>
-
-        <variable
-            name="model"
-            type="com.itsm.prototype.model.Model" />
-
-        <variable
-            name="onModelClick"
-            type="java.util.function.Consumer&lt;com.itsm.prototype.model.Model&gt;" />  <!-- ← Y aquí -->
-    </data>
-
-    <com.google.android.material.card.MaterialCardView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:onClick="@{() -> onModelClick.accept(model)}"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:strokeColor="#1A000000"
-        app:strokeWidth="1dp">
+        android:padding="12dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/ivModelThumbnail"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@android:color/darker_gray"
+            android:contentDescription="Miniatura del modelo"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_placeholder" />
+
+        <TextView
+            android:id="@+id/tvModelName"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:layout_marginStart="12dp"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivModelThumbnail"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Ferrari Rojo" />
 
-            <!-- Model Image -->
-            <ImageView
-                android:id="@+id/modelImage"
-                android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:contentDescription="@{model.name}"
-                android:scaleType="centerCrop"
-                app:imageUrl="@{model.imageUrl}"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tvModelDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="#CCFFFFFF"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivModelThumbnail"
+            app:layout_constraintTop_toBottomOf="@id/tvModelName"
+            tools:text="Auto deportivo de lujo" />
 
-            <!-- Model Name -->
-            <TextView
-                android:id="@+id/modelName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@{model.name}"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/modelImage" />
+        <TextView
+            android:id="@+id/tvDetectedObject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="#99FFFFFF"
+            android:textSize="10sp"
+            app:layout_constraintStart_toEndOf="@id/ivModelThumbnail"
+            app:layout_constraintTop_toBottomOf="@id/tvModelDescription"
+            tools:text="Tipo: car" />
 
-            <!-- Model Description -->
-            <TextView
-                android:id="@+id/modelDescription"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:text="@{model.description}"
-                android:textColor="#666666"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/modelName" />
+        <TextView
+            android:id="@+id/tvModelPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textColor="#4CAF50"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivModelThumbnail"
+            app:layout_constraintTop_toBottomOf="@id/tvDetectedObject"
+            tools:text="$150,000" />
 
-            <!-- Rating and Price Row -->
-            <LinearLayout
-                android:id="@+id/ratingPriceRow"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/modelDescription">
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Rating -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{String.valueOf(model.rating)}"
-                    android:textColor="@android:color/black"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="2dp"
-                    android:text="@string/star_symbol"
-                    android:textColor="#FFD700"
-                    android:textSize="12sp" />
-
-                <!-- Spacer -->
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <!-- Price -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{`$` + String.valueOf(model.price)}"
-                    android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-</layout>
+</com.google.android.material.card.MaterialCardView>

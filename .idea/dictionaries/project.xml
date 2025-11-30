@@ -2,20 +2,30 @@
   <dictionary name="project">
     <words>
       <w>cliente</w>
+      <w>completado</w>
+      <w>consultando</w>
       <w>continuar</w>
       <w>creado</w>
       <w>decorativa</w>
       <w>emulador</w>
+      <w>entrando</w>
       <w>específicos</w>
       <w>galería</w>
+      <w>incompletos</w>
+      <w>iniciando</w>
       <w>itsm</w>
       <w>lámpara</w>
       <w>modelo</w>
       <w>moderna</w>
       <w>método</w>
       <w>métodos</w>
+      <w>perfil</w>
+      <w>procesamiento</w>
+      <w>procesando</w>
+      <w>proceso</w>
       <w>producción</w>
       <w>pruebas</w>
+      <w>subiendo</w>
       <w>vendedor</w>
     </words>
   </dictionary>

@@ -69,35 +69,4 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun getModels(): Result<List<Model>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.getModels()
-
-            if (response.isSuccessful) {
-                val modelResponses = response.body() ?: emptyList()
-                // Convertir ModelResponse a Model
-                val models = modelResponses.map { modelResponse ->
-                    Model(
-                        id = modelResponse.id,
-                        name = modelResponse.name,
-                        description = modelResponse.description,
-                        imageUrl = modelResponse.imageUrl,
-                        rating = modelResponse.rating,
-                        price = modelResponse.price,
-                        category = modelResponse.category
-                    )
-                }
-                Result.success(models)
-            } else {
-                val errorMessage = when (response.code()) {
-                    404 -> "No se encontraron modelos"
-                    500 -> "Error del servidor"
-                    else -> "Error al cargar modelos: ${response.code()}"
-                }
-                Result.failure(Exception(errorMessage))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Error de conexión: ${e.message}"))
-        }
-    }
 }

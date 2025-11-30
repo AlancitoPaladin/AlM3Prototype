@@ -7,17 +7,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.GridLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import com.itsm.prototype.R
 import com.itsm.prototype.databinding.ActivityClientBinding
-import com.itsm.prototype.model.Model
-import com.itsm.prototype.model.ModelDetailActivity
-import com.itsm.prototype.model.ModelsAdapter
 import com.itsm.prototype.ui.login.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.function.Consumer
 
 @AndroidEntryPoint
 class ClientActivity : AppCompatActivity() {
@@ -27,69 +20,72 @@ class ClientActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_client)
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
-        binding.clientName = getUserNameFromIntent()
 
+        loadUserData()
         observeViewModel()
-        setupRecyclerView()
+        setupUI()
+    }
+
+    private fun loadUserData() {
+        // Intentar obtener de Intent primero
+        val userId = intent.getStringExtra("userId")
+        val userEmail = intent.getStringExtra("userEmail")
+        val userName = intent.getStringExtra("userName")
+
+        // Si no está en Intent, buscar en SharedPreferences
+        val prefs = getSharedPreferences("session", MODE_PRIVATE)
+        val finalUserId = userId ?: prefs.getString("userId", "")
+        val finalEmail = userEmail ?: prefs.getString("userEmail", "")
+        val finalName = userName ?: prefs.getString("userName", "")
+
+        viewModel.loadClientData(finalUserId ?: "", finalEmail ?: "", finalName)
     }
 
     private fun observeViewModel() {
-        viewModel.models.observe(this) { models ->
-            (binding.recyclerViewModels.adapter as? ModelsAdapter)?.submitList(models)
+        viewModel.client.observe(this) { client ->
+            // Actualizar UI con datos del cliente
+            binding.clientName = client.name
+            // Si tienes más campos en el layout, actualízalos aquí
         }
 
-        viewModel.models.observe(this) { models ->
-            (binding.recyclerViewModels.adapter as? ModelsAdapter)?.submitList(models)
-        }
-
-        viewModel.logoutState.observe(this) { shouldLogout ->
-            if (shouldLogout) {
-                performLogout()
+        viewModel.profileState.observe(this) { state ->
+            when (state) {
+                is ProfileState.Loading -> {
+                    // Mostrar loading si es necesario
+                }
+                is ProfileState.Success -> {
+                    showToast("Perfil cargado")
+                }
+                is ProfileState.Error -> {
+                    showToast("Error al cargar perfil: ${state.message}")
+                }
+                null -> {}
             }
         }
 
-        viewModel.errorMessage.observe(this) { message ->
-            message?.let {
-                showToast(it)
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
-            }
+        // Observar catálogo de modelos
+        viewModel.models.observe(this) { models ->
+            // TODO: Actualizar RecyclerView con modelos
         }
     }
 
-    private fun setupRecyclerView() {
-        val adapter = ModelsAdapter(Consumer { model ->
-            onModelClicked(model)
-        })
-        binding.recyclerViewModels.adapter = adapter
-        binding.recyclerViewModels.layoutManager = GridLayoutManager(this, 2)
-
-        binding.recyclerViewModels.addItemDecoration(
-            DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
-        )
-    }
-
-    private fun onModelClicked(model: Model) {
-        showToast("Modelo seleccionado: ${model.name}")
-
-        val intent = Intent(this, ModelDetailActivity::class.java).apply {
-            putExtra("MODEL_ID", model.id)
+    private fun setupUI() {
+        binding.btnLogout.setOnClickListener {
+            logout()
         }
-        startActivity(intent)
     }
 
-    private fun getUserNameFromIntent(): String {
-        return intent.getStringExtra("USER_NAME") ?: "Cliente"
-    }
-
-    private fun performLogout() {
+    private fun logout() {
         val prefs = getSharedPreferences("session", MODE_PRIVATE)
-        prefs.edit { clear() }
+        prefs.edit {
+            clear()
+        }
 
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
 

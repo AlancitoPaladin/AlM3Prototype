@@ -1,64 +1,94 @@
 package com.itsm.prototype.ui.client
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.itsm.prototype.data.UserRepository
-import com.itsm.prototype.model.Model
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.itsm.prototype.api.ApiClient
+import com.itsm.prototype.model.CatalogModelItem
+import jakarta.inject.Inject
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ClientViewModel @Inject constructor(
-    private val repository: UserRepository
-) : ViewModel() {
+class ClientViewModel @Inject constructor() : ViewModel() {
 
-    private val _models = MutableLiveData<List<Model>>()
-    val models: LiveData<List<Model>> = _models
+    private val apiService = ApiClient.apiService
+
+    private val _client = MutableLiveData<Client>()
+    val client: LiveData<Client> = _client
+
+    private val _profileState = MutableLiveData<ProfileState?>()
+    val profileState: LiveData<ProfileState?> = _profileState
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> = _errorMessage
+    private val _models = MutableLiveData<List<CatalogModelItem>>()
+    val models: LiveData<List<CatalogModelItem>> = _models
 
-    private val _logoutState = MutableLiveData<Boolean>()
-    val logoutState: LiveData<Boolean> = _logoutState
 
-    init {
-        loadModels()
-    }
-
-    fun loadModels() {
-        _isLoading.value = true
+    fun loadClientData(userId: String, email: String, name: String?) {
         viewModelScope.launch {
-            repository.getModels()
-                .onSuccess { models ->
-                    _isLoading.value = false
-                    _models.value = models
+            try {
+                _profileState.value = ProfileState.Loading
+
+                if (name.isNullOrBlank() && userId.isNotBlank()) {
+                    loadProfileFromApi(userId)
+                } else {
+                    _client.value = Client(
+                        id = userId,
+                        name = name ?: "Cliente",
+                        email = email
+                    )
+                    _profileState.value = ProfileState.Success
                 }
-                .onFailure { error ->
-                    _isLoading.value = false
-                    _errorMessage.value = error.message ?: "Error al cargar modelos"
-                }
+
+                loadCatalog()
+
+            } catch (e: Exception) {
+                _profileState.value = ProfileState.Error(
+                    e.message ?: "Error al cargar datos"
+                )
+            }
         }
     }
 
-    fun onLogoutClicked() {
-        _logoutState.value = true
+    private suspend fun loadProfileFromApi(userId: String) {
+        try {
+            val response = apiService.getClientProfile(userId)
+
+            if (response.isSuccessful && response.body() != null) {
+                val profile = response.body()!!
+                _client.value = Client(
+                    id = userId,
+                    name = profile.name,
+                    email = profile.email
+                )
+                _profileState.value = ProfileState.Success
+            } else {
+                _profileState.value = ProfileState.Error(
+                    "Error al cargar perfil: ${response.code()}"
+                )
+            }
+        } catch (e: Exception) {
+            _profileState.value = ProfileState.Error(
+                e.message ?: "Error de conexión"
+            )
+        }
     }
 
-    fun getNewModels(): List<Model> {
-        return _models.value?.take(4) ?: emptyList()
-    }
+    private suspend fun loadCatalog() {
+        try {
+            val response = apiService.getModels()
 
-    fun getPopularModels(): List<Model> {
-        return _models.value?.drop(4)?.take(12) ?: emptyList()
-    }
+            if (response.isSuccessful && response.body() != null) {
+                _models.value = response.body()!!
+            } else {
+                Log.e("ClientViewModel", "Error HTTP: ${response.code()}")
+            }
 
-    fun getRecommendedModels(): List<Model> {
-        return _models.value?.takeLast(4) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("ClientViewModel", "Error loading catalog", e)
+        }
     }
 }

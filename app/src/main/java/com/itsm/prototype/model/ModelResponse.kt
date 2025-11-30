@@ -1,6 +1,9 @@
 package com.itsm.prototype.model
 
+import com.google.gson.annotations.SerializedName
+
 class ModelResponse(
+    @SerializedName("_id")
     val id: String,
     val name: String,
     val description: String,
