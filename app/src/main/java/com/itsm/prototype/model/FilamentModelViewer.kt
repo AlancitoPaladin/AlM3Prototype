@@ -1,8 +1,11 @@
 package com.itsm.prototype.model
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.Choreographer
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceView
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -23,8 +26,8 @@ import com.google.android.filament.gltfio.AssetLoader
 import com.google.android.filament.gltfio.FilamentAsset
 import com.google.android.filament.gltfio.ResourceLoader
 import com.google.android.filament.gltfio.UbershaderProvider
-import com.google.android.filament.utils.Float3
 import com.google.android.filament.utils.Manipulator
+import com.google.android.filament.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,8 +49,8 @@ class FilamentModelViewer(
     private lateinit var camera: Camera
     private lateinit var assetLoader: AssetLoader
     private lateinit var resourceLoader: ResourceLoader
-    private lateinit var cameraManipulator: Manipulator
-
+    private var cameraManipulator: Manipulator? = null
+    private lateinit var gestureDetector: GestureDetector
 
     private var uiHelper: UiHelper? = null
     private var displayHelper: DisplayHelper? = null
@@ -57,44 +60,70 @@ class FilamentModelViewer(
 
     private val frameScheduler = FrameCallback()
     private var isInitialized = false
-
     private var isDestroyed = false
 
     private val client = OkHttpClient()
 
     init {
+        Utils.init()
         setupFilament()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupFilament() {
         choreographer = Choreographer.getInstance()
 
-        // Inicializar Filament
         engine = Engine.create()
         renderer = engine.createRenderer()
         scene = engine.createScene()
         view = engine.createView()
 
-        // Crear cámara correctamente
         val cameraEntity = EntityManager.get().create()
         camera = engine.createCamera(cameraEntity)
 
-        // Configurar cámara
         view.camera = camera
         view.scene = scene
 
-        // Configurar iluminación
         setupLighting()
 
-        // Configurar UiHelper para el SurfaceView
+        gestureDetector =
+            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent): Boolean {
+                    cameraManipulator?.grabBegin(e.x.toInt(), e.y.toInt(), e.pointerCount > 1)
+                    return true
+                }
+
+                override fun onScroll(
+                    e1: MotionEvent?,
+                    e2: MotionEvent,
+                    distanceX: Float,
+                    distanceY: Float
+                ): Boolean {
+                    cameraManipulator?.grabUpdate(e2.x.toInt(), e2.y.toInt())
+                    return true
+                }
+
+
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    resetCamera()
+                    return true
+                }
+            })
+
         uiHelper = UiHelper(UiHelper.ContextErrorPolicy.DONT_CHECK).apply {
             renderCallback = SurfaceCallback()
             attachTo(surfaceView)
         }
+        surfaceView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP) {
+                cameraManipulator?.grabEnd()
+            }
+            true
+        }
 
         displayHelper = DisplayHelper(context)
 
-        // Usar UbershaderProvider (correcto para Filament 1.67.0)
         val materialProvider = UbershaderProvider(engine)
         assetLoader = AssetLoader(engine, materialProvider, EntityManager.get())
         resourceLoader = ResourceLoader(engine)
@@ -103,29 +132,27 @@ class FilamentModelViewer(
     }
 
     private fun setupLighting() {
-        // Luz direccional principal
         val sunEntity = EntityManager.get().create()
         LightManager.Builder(LightManager.Type.SUN)
             .color(1.0f, 1.0f, 1.0f)
-            .intensity(100_000.0f)
-            .direction(0.0f, -1.0f, 0.0f)
+            .intensity(150_000.0f) // más intensidad
+            .direction(0.0f, -1.0f, -1.0f)
             .castShadows(true)
             .build(engine, sunEntity)
         scene.addEntity(sunEntity)
 
-        // Skybox simple
         val skybox = Skybox.Builder()
             .color(0.35f, 0.35f, 0.40f, 1.0f)
             .build(engine)
         scene.skybox = skybox
 
         val ibl = IndirectLight.Builder()
-            .intensity(30_000.0f)
+            .intensity(50_000.0f) // más intensidad
             .build(engine)
         scene.indirectLight = ibl
     }
 
-    fun loadModelFromUrl(url: String, callback: (Boolean) -> Unit) {
+    fun loadModelFromApi(url: String, callback: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request = Request.Builder().url(url).build()
@@ -138,13 +165,17 @@ class FilamentModelViewer(
                     return@launch
                 }
 
-                val bytes = response.body.bytes()
-
-                withContext(Dispatchers.Main) {
-                    loadModelFromBuffer(ByteBuffer.wrap(bytes))
-                    callback(true)
+                val bytes = response.body?.bytes()
+                if (bytes != null) {
+                    withContext(Dispatchers.Main) {
+                        loadModelFromBuffer(ByteBuffer.wrap(bytes))
+                        callback(true)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        callback(false)
+                    }
                 }
-
             } catch (e: Exception) {
                 Log.e("FilamentViewer", "Error loading model", e)
                 withContext(Dispatchers.Main) {
@@ -154,70 +185,86 @@ class FilamentModelViewer(
         }
     }
 
+
     private fun loadModelFromBuffer(buffer: ByteBuffer) {
-        // Limpiar asset anterior
         currentAsset?.let { asset ->
             scene.removeEntities(asset.entities)
             assetLoader.destroyAsset(asset)
         }
 
-        // Cargar nuevo modelo
         currentAsset = assetLoader.createAsset(buffer)
         currentAsset?.let { asset ->
             resourceLoader.loadResources(asset)
-
-            // Agregar a la escena
             scene.addEntities(asset.entities)
-
-            // Ajustar cámara al modelo
             adjustCameraToModel(asset)
         }
     }
 
     private fun adjustCameraToModel(asset: FilamentAsset) {
-        val boundingBox = asset.boundingBox
-        val center = boundingBox.center.let { c ->
-            Float3(c[0], c[1], c[2])
-        }
-        val halfExtent = boundingBox.halfExtent.let { h ->
-            Float3(h[0], h[1], h[2])
-        }
+        val box = asset.boundingBox
 
-        val maxExtent = maxOf(halfExtent.x, halfExtent.y, halfExtent.z)
-        val distance = maxExtent * 3.0f
+        val cx = box.center[0]
+        val cy = box.center[1]
+        val cz = box.center[2]
 
-        camera.lookAt(
-            center.x.toDouble(),
-            (center.y + maxExtent * 0.5),
-            (center.z + distance).toDouble(),
-            center.x.toDouble(),
-            center.y.toDouble(),
-            center.z.toDouble(),
-            0.0, 1.0, 0.0
-        )
+        val hx = box.halfExtent[0]
+        val hy = box.halfExtent[1]
+        val hz = box.halfExtent[2]
+
+        val radius = kotlin.math.sqrt(hx*hx + hy*hy + hz*hz)
+        val distance = radius * 3.0f
 
         val aspect = surfaceView.width.toDouble() / surfaceView.height.toDouble()
         camera.setProjection(
-            45.0, aspect, 0.1, (distance * 10.0),
+            45.0,
+            aspect,
+            radius * 0.05,
+            distance * 10.0,
             Camera.Fov.VERTICAL
         )
+
+        val eyeX = cx
+        val eyeY = cy + radius * 0.3f
+        val eyeZ = cz + distance
+        val targetX = cx
+        val targetY = cy
+        val targetZ = cz
+
+        cameraManipulator = Manipulator.Builder()
+            .targetPosition(cx, cy, cz)
+            .orbitHomePosition(eyeX, eyeY, eyeZ)
+            .viewport(surfaceView.width, surfaceView.height)
+            .build(Manipulator.Mode.ORBIT)
     }
+
+
+
 
     fun resetCamera() {
         currentAsset?.let { adjustCameraToModel(it) }
-    }
-
-    fun setWireframeMode(enabled: Boolean) {
-        view.isPostProcessingEnabled = !enabled
     }
 
     private inner class FrameCallback : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
             choreographer?.postFrameCallback(this)
 
-            if (!isInitialized || uiHelper?.isReadyToRender != true) {
-                return
+            if (!isInitialized || uiHelper?.isReadyToRender != true) return
+
+            cameraManipulator?.let { manipulator ->
+                manipulator.update(frameTimeNanos / 1_000_000_000.0f)
+
+                val eye = FloatArray(3)
+                val target = FloatArray(3)
+                val up = FloatArray(3)
+                manipulator.getLookAt(eye, target, up)
+
+                camera.lookAt(
+                    eye[0].toDouble(), eye[1].toDouble(), eye[2].toDouble(),
+                    target[0].toDouble(), target[1].toDouble(), target[2].toDouble(),
+                    up[0].toDouble(), up[1].toDouble(), up[2].toDouble()
+                )
             }
+
 
             swapChain?.let { chain ->
                 if (renderer.beginFrame(chain, frameTimeNanos)) {
@@ -241,7 +288,6 @@ class FilamentModelViewer(
                 }
 
             display?.let {
-                // ⭐ Crear y guardar swapChain
                 swapChain = engine.createSwapChain(surface)
                 displayHelper?.attach(renderer, it)
             } ?: run {
@@ -259,6 +305,7 @@ class FilamentModelViewer(
 
         override fun onResized(width: Int, height: Int) {
             view.viewport = Viewport(0, 0, width, height)
+            cameraManipulator?.setViewport(width, height)
 
             val aspect = width.toDouble() / height.toDouble()
             camera.setProjection(
@@ -266,6 +313,7 @@ class FilamentModelViewer(
                 Camera.Fov.VERTICAL
             )
         }
+
     }
 
     override fun onResume(owner: LifecycleOwner) {
@@ -280,21 +328,26 @@ class FilamentModelViewer(
         destroy()
     }
 
+
     fun destroy() {
+        if (isDestroyed) return
+        isDestroyed = true
+
         choreographer?.removeFrameCallback(frameScheduler)
+        uiHelper?.detach()
+
+        engine.flushAndWait()
 
         currentAsset?.let { asset ->
             scene.removeEntities(asset.entities)
             assetLoader.destroyAsset(asset)
+            currentAsset = null
         }
-
-        uiHelper?.detach()
 
         swapChain?.let {
             engine.destroySwapChain(it)
             swapChain = null
         }
-
 
         engine.destroyRenderer(renderer)
         engine.destroyView(view)

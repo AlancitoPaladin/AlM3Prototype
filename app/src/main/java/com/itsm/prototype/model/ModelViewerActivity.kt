@@ -149,8 +149,8 @@ class ModelViewerActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadModelInViewer(modelUrl: String) {
-        filamentViewer.loadModelFromUrl(modelUrl) { success ->
+    private fun loadModelInViewer(apiUrl: String) {
+        filamentViewer.loadModelFromApi(apiUrl) { success ->
             if (!success) {
                 showToast("Error al cargar el modelo 3D")
             }
@@ -195,9 +195,7 @@ class ModelViewerActivity : AppCompatActivity() {
             filamentViewer.resetCamera()
         }
 
-        binding.toggleWireframe.setOnCheckedChangeListener { _, isChecked ->
-            filamentViewer.setWireframeMode(isChecked)
-        }
+
     }
 
     private fun showEditDialog(model: ModelDetails) {
