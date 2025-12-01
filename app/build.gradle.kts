@@ -17,6 +17,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters.clear()
+            abiFilters.addAll(listOf(
+                "armeabi-v7a",
+                "arm64-v8a"
+            ))
+        }
+
     }
 
     buildTypes {
@@ -40,6 +49,14 @@ android {
         viewBinding = true
         dataBinding = true
     }
+
+    androidResources {
+        noCompress += listOf("filamat", "ktx")
+    }
+
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
@@ -62,5 +79,10 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.glide)
-    implementation(libs.bundles.filament)
+    implementation("com.google.android.filament:filament-android:1.67.0")
+    implementation("com.google.android.filament:filament-utils-android:1.67.0")
+    implementation("com.google.android.filament:gltfio-android:1.67.0")
+    implementation(libs.androidx.coordinatorlayout)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.okhttp)
 }

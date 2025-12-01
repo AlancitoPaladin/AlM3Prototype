@@ -123,7 +123,6 @@ class SellerViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    // ⭐ Función pública para recargar modelos
     fun refreshModels(userId: String) {
         viewModelScope.launch {
             loadUserModels(userId)
@@ -174,7 +173,6 @@ class SellerViewModel @Inject constructor() : ViewModel() {
                 val userId = prefs.getString("userId", "") ?: ""
                 val userIdBody = userId.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                // ⭐ Enviar con userId
                 val response = apiService.processImage(imagePart, userIdBody)
 
                 if (response.isSuccessful && response.body() != null) {

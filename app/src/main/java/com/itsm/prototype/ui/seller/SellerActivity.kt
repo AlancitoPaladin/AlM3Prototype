@@ -19,6 +19,7 @@ import androidx.core.content.edit
 import androidx.databinding.DataBindingUtil
 import com.itsm.prototype.R
 import com.itsm.prototype.databinding.ActivitySellerBinding
+import com.itsm.prototype.model.ModelViewerActivity
 import com.itsm.prototype.model.ModelsAdapter
 import com.itsm.prototype.model.ModelsLoadingState
 import com.itsm.prototype.ui.login.LoginActivity
@@ -96,14 +97,21 @@ class SellerActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         modelsAdapter = ModelsAdapter { model ->
-            showToast("Modelo: ${model.name}")
-            // TODO: Navegar a pantalla de detalle/edición
+            navigateToModelViewer(model.id)
         }
 
         binding.recyclerViewMyModels.apply {
             adapter = modelsAdapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@SellerActivity)
         }
+    }
+
+    private fun navigateToModelViewer(modelId: String) {
+        val intent = Intent(this, ModelViewerActivity::class.java).apply {
+            putExtra(ModelViewerActivity.EXTRA_MODEL_ID, modelId)
+            putExtra(ModelViewerActivity.EXTRA_USER_ROLE, "seller")
+        }
+        startActivity(intent)
     }
 
     private fun loadUserData() {

@@ -29,4 +29,12 @@
     <string name="star_symbol">★</string>
     <string name="select_image_and_create">Seleccionar imagen y crear</string>
     <string name="image_preview">Vista previa de imagen</string>
+    <string name="back">Atrás</string>
+    <string name="reset_view">Restablecer vista</string>
+    <string name="wireframe">Wireframe</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+    <string name="download">Descargar</string>
+    <string name="buy">Comprar</string>
+    <string name="processing">Procesando...</string>
 </resources>
