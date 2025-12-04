@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    // private const val BASE_URL = "https://edutecapi.onrender.com" // para producción
+    //private const val BASE_URL = "https://alm3api.onrender.com" // para producción
     private const val BASE_URL = "http://10.0.2.2:5000/" // Para pruebas en el emulador Android
 
 

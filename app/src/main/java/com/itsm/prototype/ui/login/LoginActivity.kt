@@ -27,6 +27,7 @@ class LoginActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         observeViewModel()
+        setupClickListeners()
     }
 
     private fun observeViewModel() {
@@ -41,9 +42,11 @@ class LoginActivity : AppCompatActivity() {
                     showToast("¡Bienvenido!")
                     navigateToAppropriateActivity(state)
                 }
+
                 is LoginState.Error -> {
                     showToast(state.message)
                 }
+
                 else -> {}
             }
         }
@@ -67,11 +70,13 @@ class LoginActivity : AppCompatActivity() {
                 putExtra("userEmail", state.email)
                 state.userName?.let { putExtra("userName", it) }
             }
+
             "CLIENT" -> Intent(this, ClientActivity::class.java).apply {
                 putExtra("userId", state.userId)
                 putExtra("userEmail", state.email)
                 state.userName?.let { putExtra("userName", it) }
             }
+
             else -> Intent(this, ClientActivity::class.java)
         }
         startActivity(intent)
@@ -80,5 +85,13 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupClickListeners() {
+        binding.signup.setOnClickListener {
+            val intent = Intent(this, Register::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 }
