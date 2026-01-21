@@ -226,9 +226,7 @@ class FilamentModelViewer(
         val eyeX = cx
         val eyeY = cy + radius * 0.3f
         val eyeZ = cz + distance
-        val targetX = cx
-        val targetY = cy
-        val targetZ = cz
+
 
         cameraManipulator = Manipulator.Builder()
             .targetPosition(cx, cy, cz)

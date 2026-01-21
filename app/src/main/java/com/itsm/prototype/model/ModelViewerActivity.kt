@@ -199,7 +199,6 @@ class ModelViewerActivity : AppCompatActivity() {
     }
 
     private fun showEditDialog(model: ModelDetails) {
-        // ⭐ Diálogo simple sin layout personalizado por ahora
         AlertDialog.Builder(this)
             .setTitle("Editar Modelo")
             .setMessage("Edición de modelo\nNombre: ${model.name}\nPrecio: $${model.price}")
